@@ -1,7 +1,9 @@
 package com.nickagas.architerctureexample
 
+import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.PersistableBundle
@@ -29,6 +31,10 @@ class MainActivity : AppCompatActivity() {
     private var mDrawerLayout: DrawerLayout? = null
     private var mActivityTitle: String? = null
 
+    companion object {
+        const val ADD_NOTE_REQUEST= 1
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -42,6 +48,12 @@ class MainActivity : AppCompatActivity() {
 //                    adapter.setNotes(it)
 //        })
         noteViewModel.allNotes.observe(this, Observer { notes -> adapter.setNotes(notes) })
+
+        buttton_add_note.setOnClickListener {
+            var intent = Intent(applicationContext, AddNoteActivity::class.java)
+            startActivityForResult(intent, ADD_NOTE_REQUEST)
+        }
+
 
 
 //        val toolbar: Toolbar = findViewById(R.id.toolbar)
@@ -74,6 +86,24 @@ class MainActivity : AppCompatActivity() {
 //        getSupportActionBar()?.setDisplayHomeAsUpEnabled(true);
 //        getSupportActionBar()?.setHomeButtonEnabled(true);
 
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode == ADD_NOTE_REQUEST && resultCode == Activity.RESULT_OK){
+            var title = data?.getStringExtra(AddNoteActivity.EXTRA_TITLE)
+            var description = data?.getStringExtra(AddNoteActivity.EXTRA_DESCRIPTION)
+            var pririty = data?.getIntExtra(AddNoteActivity.EXTRA_DESCRIPTION, 1)
+            var note = pririty?.run {
+                Note(title,description, this)
+
+            }
+            noteViewModel.insert(note)
+            Toast.makeText(this,"Note Saved", Toast.LENGTH_SHORT).show()
+
+        } else {
+            Toast.makeText(this,"Note Not Saved", Toast.LENGTH_SHORT).show()
+        }
     }
 
 //    private fun setupDrawer() {
