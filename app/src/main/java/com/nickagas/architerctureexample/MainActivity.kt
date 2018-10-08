@@ -20,7 +20,9 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.Toolbar
+import android.support.v7.widget.helper.ItemTouchHelper
 import android.view.MenuItem
+import com.google.common.base.MoreObjects
 
 
 class MainActivity : AppCompatActivity() {
@@ -53,6 +55,22 @@ class MainActivity : AppCompatActivity() {
             var intent = Intent(applicationContext, AddNoteActivity::class.java)
             startActivityForResult(intent, ADD_NOTE_REQUEST)
         }
+
+        val itemTouchCallback = object: ItemTouchHelper.SimpleCallback(0,
+                ItemTouchHelper.LEFT or  ItemTouchHelper.RIGHT ) {
+            override fun onMove(p0: RecyclerView, p1: RecyclerView.ViewHolder, p2: RecyclerView.ViewHolder): Boolean {
+               return false
+            }
+
+            override fun onSwiped(p0: RecyclerView.ViewHolder, p1: Int) {
+                noteViewModel.delete(adapter.getNoteAt(p0.adapterPosition));
+                Toast.makeText(this@MainActivity,"Note Deleted", Toast.LENGTH_SHORT).show()
+
+            }
+
+        }
+        val itemTouchHelper = ItemTouchHelper(itemTouchCallback)
+        itemTouchHelper.attachToRecyclerView(recycler)
 
 
 
