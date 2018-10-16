@@ -20,7 +20,7 @@
             android:name=".DrawerActivity"
             android:label="@string/title_activity_drawer"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity android:name=".AddNoteActivity"></activity>
+        <activity android:name=".AddEditNoteActivity"></activity>
     </application>
 
 </manifest>

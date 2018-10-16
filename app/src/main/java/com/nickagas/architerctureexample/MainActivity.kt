@@ -6,23 +6,15 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.os.PersistableBundle
-import android.support.v4.view.GravityCompat
-import android.view.View
 import android.widget.Toast
 import android.widget.ArrayAdapter
 import android.widget.ListView
-import android.widget.AdapterView
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v4.widget.DrawerLayout
-import android.support.v7.app.ActionBar
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.Toolbar
 import android.support.v7.widget.helper.ItemTouchHelper
-import android.view.MenuItem
-import com.google.common.base.MoreObjects
 
 
 class MainActivity : AppCompatActivity() {
@@ -35,6 +27,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val ADD_NOTE_REQUEST= 1
+        const val EDIT_NOTE_REQUEST= 2
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,7 +45,7 @@ class MainActivity : AppCompatActivity() {
         noteViewModel.allNotes.observe(this, Observer { notes -> adapter.setNotes(notes) })
 
         buttton_add_note.setOnClickListener {
-            var intent = Intent(applicationContext, AddNoteActivity::class.java)
+            var intent = Intent(applicationContext, AddEditNoteActivity::class.java)
             startActivityForResult(intent, ADD_NOTE_REQUEST)
         }
 
@@ -72,7 +65,15 @@ class MainActivity : AppCompatActivity() {
         val itemTouchHelper = ItemTouchHelper(itemTouchCallback)
         itemTouchHelper.attachToRecyclerView(recycler)
 
+        adapter.setItemOnClicklistener { NoteAdapter.OnItemClickListener {
+            var intent = Intent(this,AddEditNoteActivity::class.java)
+            intent.putExtra(AddEditNoteActivity.EXTRA_ID, it.id)
+            intent.putExtra(AddEditNoteActivity.EXTRA_TITLE, it.title)
+            intent.putExtra(AddEditNoteActivity.EXTRA_DESCRIPTION, it.description)
+            intent.putExtra(AddEditNoteActivity.EXTRA_PRIORITY, it.priority)
+            startActivityForResult(intent, EDIT_NOTE_REQUEST)
 
+        } }
 
 //        val toolbar: Toolbar = findViewById(R.id.toolbar)
 //        setSupportActionBar(toolbar)
@@ -109,17 +110,35 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(requestCode == ADD_NOTE_REQUEST && resultCode == Activity.RESULT_OK){
-            var title = data?.getStringExtra(AddNoteActivity.EXTRA_TITLE)
-            var description = data?.getStringExtra(AddNoteActivity.EXTRA_DESCRIPTION)
-            var pririty = data?.getIntExtra(AddNoteActivity.EXTRA_DESCRIPTION, 1)
+            var title = data?.getStringExtra(AddEditNoteActivity.EXTRA_TITLE)
+            var description = data?.getStringExtra(AddEditNoteActivity.EXTRA_DESCRIPTION)
+            var pririty = data?.getIntExtra(AddEditNoteActivity.EXTRA_DESCRIPTION, 1)
             var note = pririty?.run {
                 Note(title,description, this)
 
             }
+
+
             noteViewModel.insert(note)
             Toast.makeText(this,"Note Saved", Toast.LENGTH_SHORT).show()
 
-        } else {
+        }else if(requestCode == EDIT_NOTE_REQUEST && resultCode == Activity.RESULT_OK){
+            var id = data?.getIntExtra(AddEditNoteActivity.EXTRA_ID, -1)
+            if(id == -1){
+                Toast.makeText(this,"Note cant be updated", Toast.LENGTH_SHORT).show()
+                return;
+            }
+            var title = data?.getStringExtra(AddEditNoteActivity.EXTRA_TITLE)
+            var description = data?.getStringExtra(AddEditNoteActivity.EXTRA_DESCRIPTION)
+            var pririty = data?.getIntExtra(AddEditNoteActivity.EXTRA_DESCRIPTION, 1)
+            var note = pririty?.run {
+                Note(title,description, this)
+
+            }
+            note?.id = id!!
+            noteViewModel.update(note)
+
+        }else {
             Toast.makeText(this,"Note Not Saved", Toast.LENGTH_SHORT).show()
         }
     }
